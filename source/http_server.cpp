@@ -10,6 +10,7 @@ using boost::asio::ip::tcp;
 using boost::asio::io_service;
 using std::cout;
 using std::endl;
+using std::cerr;
 boost::asio::io_context io_context;
 
 class session
@@ -77,12 +78,12 @@ private:
             EXEC_FILE[strlen(EXEC_FILE)]='\0';
             QUERY_STRING[strlen(QUERY_STRING)]='\0';
             std::string target_uri = std::string(EXEC_FILE);
-						target_uri = "./cgi"+target_uri;
+						target_uri = "."+target_uri;
             
-            cout<<"\nRU: "<<REQUEST_URI<<endl;
-            cout<<"EXEC: "<<EXEC_FILE<<endl;
-            cout<<"QS: "<<QUERY_STRING<<endl;
-            cout<<"TU: "<<target_uri<<endl;
+            // cout<<"\nRU: "<<REQUEST_URI<<endl;
+            // cout<<"EXEC: "<<EXEC_FILE<<endl;
+            // cout<<"QS: "<<QUERY_STRING<<endl;
+            // cout<<"TU: "<<target_uri<<endl;
     
             io_context.notify_fork(io_service::fork_prepare);
             if (fork() != 0) {
@@ -105,8 +106,9 @@ private:
 							dup2(sock, STDOUT_FILENO);
 							socket_.close();
               if (execlp(target_uri.c_str(), target_uri.c_str(), NULL) < 0) {
-                std::cout << "Content-type:text/html\r\n\r\n<h1>FAIL</h1>";
-                cout<<"fuck out"<<endl;
+                // std::cout << "Content-type:text/html\r\n\r\n<h1>FAIL</h1>";
+                // cout<<"fuck out"<<endl;
+                cout<<"finished\n";
               }
             }
             do_read();
