@@ -31,7 +31,9 @@ class session
 		session(tcp::socket socket_,int index)
 			: socket_(std::move(socket_))
 		{
+            cerr<<"shell "<<index<<" is creating session"<<endl;
             id = index;
+            Receive="";
             filename = "./test_case/"+shells[id].file;
             inputFile.open(filename,ios::in);
         }
@@ -43,8 +45,8 @@ class session
 	private:
 		void do_read()
 		{
+            cerr<<"shell "<<id<<" start do read"<<endl;
 			auto self(shared_from_this());
-            Receive="";
             socket_.async_read_some(boost::asio::buffer(data_, max_length),
                 [this,self](boost::system::error_code ec, std::size_t length){
                 if (!ec){
@@ -53,17 +55,22 @@ class session
                     size_t pos;
                     if((pos = Receive.find("%")) != string::npos){
                         output_shell(id,Receive);
+                        Receive="";
                         do_write();
                     }
+                    cerr<<"shell "<<id<<" finish async_read_some"<<endl;
                     do_read();
                 }
                 else
-                    perror("async_read");
+                    // perror("async_read");
                 });
+            
+            cerr<<"shell "<<id<<" finish do read"<<endl;
 		}
 
 		void do_write()
 		{
+            cerr<<"shell "<<id<<" start do write"<<endl;
 			auto self(shared_from_this());
             string input;
             //if(file_input.eof()) return;
@@ -72,13 +79,18 @@ class session
             }
             input = input + "\n";
             output_command(id,input);
+            cerr<<"shell "<<id<<" start async_write"<<endl;
+                
             boost::asio::async_write(socket_, boost::asio::buffer(input.c_str(), input.length()),
                 [this,self](boost::system::error_code ec, std::size_t /*length*/){
                 if (!ec){
+                    
+                cerr<<"shell "<<id<<" finish async_write"<<endl;
                 }else{
                     perror("async_write");
                 }
             });
+            cerr<<"shell "<<id<<" finish do write"<<endl;
         }
 
         tcp::socket socket_;
@@ -94,6 +106,7 @@ class server{
     public:
         server():resolve(io_context){
             for(size_t i=0;i<shells.size();i++){
+                cerr<<"create query"<<endl;
                 tcp::resolver::query query(shells[i].host, shells[i].port);
                 resolve.async_resolve(query,
                     boost::bind(&server::connection, this,i,boost::asio::placeholders::error,boost::asio::placeholders::iterator ));
@@ -102,6 +115,7 @@ class server{
         void connection(const int i,const boost::system::error_code& err,const tcp::resolver::iterator it){
             if (!err)
             {
+                cerr<<"Shell "<<i<<" is prepared to connect"<<endl;
                 socket_[i] = new tcp::socket(io_context);
                 (*socket_[i]).async_connect(*it,
                 boost::bind(&server::create_session, this,i,boost::asio::placeholders::error,it ));
@@ -110,6 +124,7 @@ class server{
         void create_session(const int i,const boost::system::error_code& err,const tcp::resolver::iterator it){
             if (!err)
             {
+                cerr<<"Shell "<<i<<" is connected to "<<shells[i].host<<":"<<shells[i].port<<endl;
                 std::make_shared<session>(std::move(*socket_[i]),i)->start();
             }
         }
