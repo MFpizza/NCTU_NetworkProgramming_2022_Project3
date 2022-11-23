@@ -27,10 +27,10 @@ vector<npshell> shells;
 class session
 : public std::enable_shared_from_this<session>
 {
-	public:
-		session(tcp::socket socket_,int index)
-			: socket_(std::move(socket_))
-		{
+	  public:
+        session(tcp::socket socket_,int index)
+          : socket_(std::move(socket_))
+        {
             cerr<<"shell "<<index<<" is creating session"<<endl;
             id = index;
             Receive="";
@@ -43,10 +43,10 @@ class session
         }
 
 	private:
-		void do_read()
-		{
+        void do_read()
+        {
             cerr<<"shell "<<id<<" start do read"<<endl;
-			auto self(shared_from_this());
+			      auto self(shared_from_this());
             socket_.async_read_some(boost::asio::buffer(data_, max_length),
                 [this,self](boost::system::error_code ec, std::size_t length){
                 if (!ec){
@@ -63,15 +63,16 @@ class session
                 }
                 else
                     // perror("async_read");
+                    socket_.close();
                 });
             
             cerr<<"shell "<<id<<" finish do read"<<endl;
-		}
+		    }
 
-		void do_write()
-		{
+        void do_write()
+        {
             cerr<<"shell "<<id<<" start do write"<<endl;
-			auto self(shared_from_this());
+            auto self(shared_from_this());
             string input;
             //if(file_input.eof()) return;
             if(!getline(inputFile,input)){

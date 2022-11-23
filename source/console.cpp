@@ -41,4 +41,3 @@ vector<string> SeperateQueryString(string QS){
     }
     return parameter;
 }
-
