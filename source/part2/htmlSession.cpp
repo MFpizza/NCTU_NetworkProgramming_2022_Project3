@@ -45,10 +45,10 @@ void session::do_read()
                                     EXEC_FILE[strlen(EXEC_FILE)] = '\0';
                                     QUERY_STRING[strlen(QUERY_STRING)] = '\0';
                                     target_uri = std::string(EXEC_FILE);
-                                    cout << "\nRU: " << REQUEST_URI << endl;
-                                    cout << "EXEC: " << EXEC_FILE << endl;
-                                    cout << "QS: " << QUERY_STRING << endl;
-                                    cout << "TU: " << target_uri << endl;
+                                    // cout << "\nRU: " << REQUEST_URI << endl;
+                                    // cout << "EXEC: " << EXEC_FILE << endl;
+                                    // cout << "QS: " << QUERY_STRING << endl;
+                                    // cout << "TU: " << target_uri << endl;
                                     queryString = string(QUERY_STRING);
 
                                     if (target_uri == "/panel.cgi")
@@ -70,7 +70,7 @@ void session::do_write(std::size_t length)
                            if (!ec)
                            {
                                // cout<<data_<<endl;
-                               cout << "do write" << endl;
+                            //    cout << "do write" << endl;
                            }
                            else
                            {
@@ -88,7 +88,7 @@ void session::do_write(std::size_t length)
                                s->do_tcpConnect(queryString, std::move(socket_));
                                // cout<<data_<<endl;
                                
-                               cout << "finish send output_shell" << endl;
+                            //    cout << "finish send output_shell" << endl;
                            }
                            else
                            {
@@ -108,7 +108,7 @@ void session::do_panel()
                            if (!ec)
                            {
 
-                               cout << "finish header pass" << endl;
+                            //    cout << "finish header pass" << endl;
                            }
                            else
                            {
@@ -116,13 +116,14 @@ void session::do_panel()
                                cout << ec << endl;
                            }
                        });
+    cout<<"do_panel_______________________________________"<<endl;
     string returnBody = panelHTML();
     socket_.async_send(boost::asio::buffer(returnBody.c_str(), returnBody.size()),
                        [this, self](boost::system::error_code ec, std::size_t /*length*/)
                        {
                            if (!ec)
                            {
-                               cout << "finish write panel" << endl;
+                            //    cout << "finish write panel" << endl;
 
                                do_read();
                            }

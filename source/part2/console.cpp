@@ -95,9 +95,7 @@ string output_shell(int session, string content)
     boost::replace_all(content, "'", "\\'");
     boost::replace_all(content, "<", "&lt;");
     boost::replace_all(content, ">", "&gt;");
-    char buf[1024];
-    sprintf(buf, "<script>document.getElementById('s%d').innerHTML += '%s';</script>", session, content.c_str());
-    string s = string(buf);
+    string s = "<script>document.getElementById('s"+to_string(session)+"').innerHTML += '"+content+"';</script>";
     return s;
 }
 
@@ -109,9 +107,7 @@ string output_command(int session, string content)
     boost::replace_all(content, "'", "\\'");
     boost::replace_all(content, "<", "&lt;");
     boost::replace_all(content, ">", "&gt;");
-    char buf[1024];
-    sprintf(buf, "<script>document.getElementById('s%d').innerHTML += '<b>%s</b>';</script>", session, content.c_str());
-    string s = string(buf);
+    string s = "<script>document.getElementById('s"+to_string(session)+"').innerHTML += '<b>"+content+"</b>';</script>";
     return s;
 }
 
@@ -148,5 +144,5 @@ void buildShells(string QS){
         newShell.file = parameter[i+2];
         shells.push_back(newShell);
     }
-    cout<<"shells size: "<<shells.size()<<endl;
+    // cout<<"shells size: "<<shells.size()<<endl;
 }

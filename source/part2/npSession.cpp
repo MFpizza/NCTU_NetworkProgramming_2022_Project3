@@ -5,9 +5,10 @@ sessionToNP::sessionToNP(std::shared_ptr<boost::asio::ip::tcp::socket> originalS
     : socket_(std::move(socket_))
 {
     currentSocket = originalSocket;
-    cerr << "shell " << index << " is creating session" << endl;
+    // cerr << "shell " << index << " is creating session" << endl;
     id = index;
     Receive = "";
+    memset(data_, 0, max_length);
     filename = "./test_case/" + shells[id].file;
     inputFile.open(filename, ios::in);
 }
@@ -19,36 +20,52 @@ void sessionToNP::start()
 
 void sessionToNP::do_read()
 {
-    cerr << "shell " << id << " start do read" << endl;
     auto self(shared_from_this());
     socket_.async_read_some(boost::asio::buffer(data_, max_length),
                             [this, self](boost::system::error_code ec, std::size_t length)
                             {
                                 if (!ec)
                                 {
-                                    Receive += data_;
-                                    memset(data_, 0, length);
+                                    printf("%s",data_);
+                                    fflush(stdout);
+                                    Receive += string(data_);
+                                    memset(data_, 0, max_length);
                                     size_t pos;
-                                    if ((pos = Receive.find("%")) != string::npos)
+                                    if ((pos = Receive.find("% ")) != string::npos)
                                     {
-                                        // cout << Receive << endl;
                                         string returnBody = output_shell(id, Receive);
+                                        // cout<<"--------------------------------"<<endl;
+                                        // cout << Receive << endl;
+                                        // cout<<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"<<endl;
+                                        // cout << returnBody << endl;
+                                        // boost::asio::async_write(*currentSocket, boost::asio::buffer(returnBody, returnBody.size()),
+                                        //                          [this, self](boost::system::error_code ec, std::size_t /*length*/)
+                                        //                          {
+                                        //                              if (!ec)
+                                        //                              {
+                                        //                                 cout<<"async_write finished"<<endl;
+                                        //                              }
+                                        //                              else
+                                        //                              {
+                                        //                                  perror("async_write");
+                                        //                              }
+                                        //                          });
                                         currentSocket->send(boost::asio::buffer(returnBody, returnBody.size()));
                                         Receive = "";
                                         do_write();
                                     }
-                                    cerr << "shell " << id << " finish async_read_some" << endl;
                                     do_read();
                                 }
                                 else
-                                    // perror("async_read");
+                                {
+                                    perror("async_read");
                                     socket_.close();
+                                }
                             });
 }
 
 void sessionToNP::do_write()
 {
-    cerr << "shell " << id << " start do write" << endl;
     auto self(shared_from_this());
     string input;
     // if(file_input.eof()) return;
@@ -58,6 +75,26 @@ void sessionToNP::do_write()
     }
     input = input + "\n";
     string returnBody = output_command(id, input);
-    currentSocket->send(boost::asio::buffer(returnBody, returnBody.size()));
-    socket_.send(boost::asio::buffer(input.c_str(), input.length()));
+    boost::asio::async_write(*currentSocket, boost::asio::buffer(returnBody, returnBody.size()),
+                             [this, self](boost::system::error_code ec, std::size_t /*length*/)
+                             {
+                                 if (!ec)
+                                 {
+                                 }
+                                 else
+                                 {
+                                     perror("async_write");
+                                 }
+                             });
+    boost::asio::async_write(socket_, boost::asio::buffer(input.c_str(), input.length()),
+                             [this, self](boost::system::error_code ec, std::size_t /*length*/)
+                             {
+                                 if (!ec)
+                                 {
+                                 }
+                                 else
+                                 {
+                                     perror("async_write");
+                                 }
+                             });
 }
