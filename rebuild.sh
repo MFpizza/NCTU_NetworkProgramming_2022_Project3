@@ -1,2 +1,2 @@
-make part1
-./http_server 5678
+make part2
+./cgi_server 5678

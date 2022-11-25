@@ -2,8 +2,6 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include <sys/wait.h>
-#include <unistd.h>
 #include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/bind/bind.hpp>
@@ -16,19 +14,14 @@ struct npshell{
     string port;
     string file;
 };
-void print_header();
-void print_endHeader();
-void output_shell(int session,string content);
-void output_command(int session,string content);
 
 boost::asio::io_context io_context;
-vector<npshell> shells;
 
-class session
-: public std::enable_shared_from_this<session>
+class sessionToNP
+: public std::enable_shared_from_this<sessionToNP>
 {
 	  public:
-        session(tcp::socket socket_,int index)
+        sessionToNP(tcp::socket socket_,int index)
           : socket_(std::move(socket_))
         {
             cerr<<"shell "<<index<<" is creating session"<<endl;
@@ -103,14 +96,14 @@ class session
         string Receive;
 };
 
-class server{
+class serverToNP{
     public:
-        server():resolve(io_context){
+        serverToNP():resolve(io_context){
             for(size_t i=0;i<shells.size();i++){
                 cerr<<"create query"<<endl;
                 tcp::resolver::query query(shells[i].host, shells[i].port);
                 resolve.async_resolve(query,
-                    boost::bind(&server::connection, this,i,boost::asio::placeholders::error,boost::asio::placeholders::iterator ));
+                    boost::bind(&serverToNP::connection, this,i,boost::asio::placeholders::error,boost::asio::placeholders::iterator ));
             }
         }
         void connection(const int i,const boost::system::error_code& err,const tcp::resolver::iterator it){
@@ -119,14 +112,14 @@ class server{
                 cerr<<"Shell "<<i<<" is prepared to connect"<<endl;
                 socket_[i] = new tcp::socket(io_context);
                 (*socket_[i]).async_connect(*it,
-                boost::bind(&server::create_session, this,i,boost::asio::placeholders::error,it ));
+                boost::bind(&serverToNP::create_session, this,i,boost::asio::placeholders::error,it ));
             }
         }
         void create_session(const int i,const boost::system::error_code& err,const tcp::resolver::iterator it){
             if (!err)
             {
                 cerr<<"Shell "<<i<<" is connected to "<<shells[i].host<<":"<<shells[i].port<<endl;
-                std::make_shared<session>(std::move(*socket_[i]),i)->start();
+                std::make_shared<sessionToNP>(std::move(*socket_[i]),i)->start();
             }
         }
     
@@ -134,6 +127,14 @@ class server{
         tcp::socket *socket_[5];
         tcp::resolver resolve;
 };
+
+void print_header();
+void print_endHeader();
+void output_shell(int session,string content);
+void output_command(int session,string content);
+vector<string> SeperateQueryString(string QS);
+
+vector<npshell> shells;
 
 void printHTML(vector<npshell> shells){
     print_header();
@@ -230,4 +231,24 @@ void output_command(int session,string content){
     boost::replace_all(content, ">", "&gt;");
     printf("<script>document.getElementById('s%d').innerHTML += '<b>%s</b>';</script>",session,content.c_str());
     fflush(stdout);
+}
+
+vector<string> SeperateQueryString(string QS){
+    vector<string> parameter;
+    string delimiter = "=";
+    string delimiter2 = "&";
+    size_t pos = 0,pos2=0;
+    string token;
+    while ((pos = QS.find(delimiter)) != string::npos)
+    {
+        QS.erase(0, pos + delimiter.length());
+        pos2 = QS.find(delimiter2);
+        token = QS.substr(0,pos2);
+        if(token!=""){
+            // cout<<token<<endl;
+            parameter.push_back(token);
+        }
+        QS.erase(0, pos2 + delimiter2.length());
+    }
+    return parameter;
 }
