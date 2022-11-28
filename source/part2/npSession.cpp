@@ -58,7 +58,10 @@ void sessionToNP::do_read()
                                 {
                                     // printf("%s",data_);
                                     // fflush(stdout);
-                                    Receive += string(data_);
+                                    for (int i = 0; i < length; i++)
+                                    {
+                                        Receive += (data_[i]);
+                                    }
                                     memset(data_, 0, max_length);
                                     size_t pos;
                                     if ((pos = Receive.find("% ")) != string::npos)
