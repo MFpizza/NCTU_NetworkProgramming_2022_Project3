@@ -15,7 +15,13 @@ struct npshell{
     string file;
 };
 
+vector<npshell> shells;
 boost::asio::io_context io_context;
+void print_header();
+void print_endHeader();
+void output_shell(int session,string content);
+void output_command(int session,string content);
+vector<string> SeperateQueryString(string QS);
 
 class sessionToNP
 : public std::enable_shared_from_this<sessionToNP>
@@ -128,13 +134,7 @@ class serverToNP{
         tcp::resolver resolve;
 };
 
-void print_header();
-void print_endHeader();
-void output_shell(int session,string content);
-void output_command(int session,string content);
-vector<string> SeperateQueryString(string QS);
 
-vector<npshell> shells;
 
 void printHTML(vector<npshell> shells){
     print_header();
