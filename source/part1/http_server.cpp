@@ -130,8 +130,12 @@ public:
     : acceptor_(io_context, tcp::endpoint(tcp::v4(), port)),
       signal_(io_context, SIGCHLD)
   {
+    cerr<<"~~~~~server start"<<endl;
     start_signal_wait();
     do_accept();
+  }
+  ~server(){
+    cerr<<"pid: "<<pid<<" server end~~~~~"<<endl;
   }
 
 private:
@@ -162,9 +166,10 @@ private:
         {
           if (!ec)
           {
+            cerr<<"ready to fork"<<endl;
             io_context.notify_fork(io_service::fork_prepare);
-
-            if (fork() == 0)
+            pid = fork();
+            if (pid == 0)
             {
                 io_context.notify_fork(io_service::fork_child);
                 acceptor_.close();
@@ -183,8 +188,10 @@ private:
           }
 
         });
+      int count = 0;
+      cout<<"end accept"<<endl;
   }
-
+  pid_t pid;
   boost::asio::signal_set signal_;
   tcp::acceptor acceptor_;
 };

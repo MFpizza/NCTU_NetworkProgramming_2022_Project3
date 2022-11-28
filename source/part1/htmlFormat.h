@@ -60,7 +60,7 @@ class sessionToNP
                         Receive="";
                         do_write();
                     }
-                    cerr<<"shell "<<id<<" finish async_read_some"<<endl;
+                    // cerr<<"shell "<<id<<" finish async_read_some"<<endl;
                     do_read();
                 }
                 else
@@ -68,7 +68,7 @@ class sessionToNP
                     socket_.close();
                 });
             
-            cerr<<"shell "<<id<<" finish do read"<<endl;
+            // cerr<<"shell "<<id<<" finish do read"<<endl;
 		    }
 
         void do_write()
@@ -82,18 +82,18 @@ class sessionToNP
             }
             input = input + "\n";
             output_command(id,input);
-            cerr<<"shell "<<id<<" start async_write"<<endl;
+            // cerr<<"shell "<<id<<" start async_write"<<endl;
                 
             boost::asio::async_write(socket_, boost::asio::buffer(input.c_str(), input.length()),
                 [this,self](boost::system::error_code ec, std::size_t /*length*/){
                 if (!ec){
                     
-                cerr<<"shell "<<id<<" finish async_write"<<endl;
+                // cerr<<"shell "<<id<<" finish async_write"<<endl;
                 }else{
                     perror("async_write");
                 }
             });
-            cerr<<"shell "<<id<<" finish do write"<<endl;
+            // cerr<<"shell "<<id<<" finish do write"<<endl;
         }
 
         tcp::socket socket_;
