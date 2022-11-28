@@ -14,6 +14,7 @@ class sessionToNP
 {
 public:
   sessionToNP(std::shared_ptr<boost::asio::ip::tcp::socket> originalSocket, tcp::socket socket_, int index);
+  ~sessionToNP();
   void start();
 
 private:

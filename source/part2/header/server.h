@@ -21,6 +21,7 @@ class server
 {
 public:
   server(boost::asio::io_context &io_context, short port);
+  ~server();
   void do_tcpConnect(string queryString,tcp::socket socket);
 
 private:

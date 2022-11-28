@@ -12,6 +12,9 @@ sessionToNP::sessionToNP(std::shared_ptr<boost::asio::ip::tcp::socket> originalS
     filename = "./test_case/" + shells[id].file;
     inputFile.open(filename, ios::in);
 }
+sessionToNP::~sessionToNP(){
+     cerr << "shell " << id << " is closing session" << endl;
+}
 
 void sessionToNP::start()
 {
@@ -26,8 +29,8 @@ void sessionToNP::do_read()
                             {
                                 if (!ec)
                                 {
-                                    printf("%s",data_);
-                                    fflush(stdout);
+                                    // printf("%s",data_);
+                                    // fflush(stdout);
                                     Receive += string(data_);
                                     memset(data_, 0, max_length);
                                     size_t pos;

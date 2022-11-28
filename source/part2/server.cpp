@@ -10,6 +10,9 @@ server::server(boost::asio::io_context &io_context, short port)
 {
     do_accept();
 }
+server::~server(){
+    cout<<"server is closed"<<endl;
+}
 
 void server::do_accept()
 {
