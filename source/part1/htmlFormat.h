@@ -47,13 +47,15 @@ class sessionToNP
 	private:
         void do_read()
         {
-            cerr<<"shell "<<id<<" start do read"<<endl;
+            // cerr<<"shell "<<id<<" start do read"<<endl;
 			      auto self(shared_from_this());
             socket_.async_read_some(boost::asio::buffer(data_, max_length),
                 [this,self](boost::system::error_code ec, std::size_t length){
                 if (!ec){
-                    Receive += data_;
-                    memset(data_,0,length);
+                    for(int i=0;i<length;i++){
+                      Receive+= (data_[i]);
+                    }
+                    memset(data_,'\0',length);
                     size_t pos;
                     if((pos = Receive.find("% ")) != string::npos){
                         output_shell(id,Receive);
