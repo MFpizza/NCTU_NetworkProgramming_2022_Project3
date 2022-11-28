@@ -21,7 +21,7 @@ private:
   void do_read();
   void do_write();
 
-  tcp::socket socket_;
+
   enum
   {
     max_length = 1024
@@ -32,6 +32,9 @@ private:
   string filename;
   string Receive;
   string status_str = "HTTP/1.1 200 OK\n";
+  
+  tcp::socket socket_;
+  tcp::resolver resolve;
   std::shared_ptr<boost::asio::ip::tcp::socket> currentSocket;
 };
 

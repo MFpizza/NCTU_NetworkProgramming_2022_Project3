@@ -22,16 +22,11 @@ class server
 public:
   server(boost::asio::io_context &io_context, short port);
   ~server();
-  void do_tcpConnect(string queryString,tcp::socket socket);
 
 private:
   void do_accept();
-  void connection(const int i, const boost::system::error_code &err, const tcp::resolver::iterator it);
-  void create_session(const int i, const boost::system::error_code &err, const tcp::resolver::iterator it);
-  std::shared_ptr<boost::asio::ip::tcp::socket> currentSocket;
+  
   tcp::acceptor acceptor_;
-  tcp::socket *socket_[5];
-  tcp::resolver resolve;
 };
 extern server *s;
 

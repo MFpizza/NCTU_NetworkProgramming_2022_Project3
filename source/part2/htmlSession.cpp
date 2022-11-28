@@ -1,6 +1,7 @@
 #include "header/htmlSession.h"
 #include "header/server.h"
 #include "header/console.h"
+#include "header/npSession.h"
 session::session(tcp::socket socket)
     : socket_(std::move(socket))
 {
@@ -70,7 +71,7 @@ void session::do_write(std::size_t length)
                            if (!ec)
                            {
                                // cout<<data_<<endl;
-                            //    cout << "do write" << endl;
+                               //    cout << "do write" << endl;
                            }
                            else
                            {
@@ -85,10 +86,18 @@ void session::do_write(std::size_t length)
                        {
                            if (!ec)
                            {
-                               s->do_tcpConnect(queryString, std::move(socket_));
+                               std::shared_ptr<boost::asio::ip::tcp::socket> currentSocket = std::make_shared<boost::asio::ip::tcp::socket>(std::move(socket_));
+                               for (size_t i = 0; i < shells.size(); i++)
+                               {
+                                    tcp::socket socketToNp(io_context);
+                                    std::make_shared<sessionToNP>(currentSocket, std::move(socketToNp), i)->start();
+    
+                                   // cerr << "create query" << endl;
+                                   
+                               }
                                // cout<<data_<<endl;
-                               
-                            //    cout << "finish send output_shell" << endl;
+
+                               //    cout << "finish send output_shell" << endl;
                            }
                            else
                            {
@@ -108,7 +117,7 @@ void session::do_panel()
                            if (!ec)
                            {
 
-                            //    cout << "finish header pass" << endl;
+                               //    cout << "finish header pass" << endl;
                            }
                            else
                            {
@@ -116,14 +125,14 @@ void session::do_panel()
                                cout << ec << endl;
                            }
                        });
-    cout<<"do_panel_______________________________________"<<endl;
+    cout << "do_panel_______________________________________" << endl;
     string returnBody = panelHTML();
     socket_.async_send(boost::asio::buffer(returnBody.c_str(), returnBody.size()),
                        [this, self](boost::system::error_code ec, std::size_t /*length*/)
                        {
                            if (!ec)
                            {
-                            //    cout << "finish write panel" << endl;
+                               //    cout << "finish write panel" << endl;
 
                                do_read();
                            }

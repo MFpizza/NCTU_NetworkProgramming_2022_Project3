@@ -1,8 +1,9 @@
 #include "header/npSession.h"
 #include "header/console.h"
-
+#include "header/server.h"
 sessionToNP::sessionToNP(std::shared_ptr<boost::asio::ip::tcp::socket> originalSocket, tcp::socket socket_, int index)
-    : socket_(std::move(socket_))
+    : socket_(std::move(socket_)),
+      resolve(io_context)
 {
     currentSocket = originalSocket;
     // cerr << "shell " << index << " is creating session" << endl;
@@ -12,13 +13,39 @@ sessionToNP::sessionToNP(std::shared_ptr<boost::asio::ip::tcp::socket> originalS
     filename = "./test_case/" + shells[id].file;
     inputFile.open(filename, ios::in);
 }
-sessionToNP::~sessionToNP(){
-     cerr << "shell " << id << " is closing session" << endl;
+sessionToNP::~sessionToNP()
+{
+    cerr << "shell " << id << " is closing session" << endl;
 }
 
 void sessionToNP::start()
 {
-    do_read();
+    auto self(shared_from_this());
+    cout << id << endl;
+    tcp::resolver::query query(shells[id].host, shells[id].port);
+    resolve.async_resolve(query,
+                          [this, self](boost::system::error_code ec, tcp::resolver::iterator it)
+                          {
+                              if (!ec)
+                              {
+                                  socket_.async_connect(*it,
+                                                        [this, self](boost::system::error_code ec)
+                                                        {
+                                                            if (!ec)
+                                                            {
+                                                                do_read();
+                                                            }
+                                                            else
+                                                            {
+                                                                perror("async_read");
+                                                            }
+                                                        });
+                              }
+                              else
+                              {
+                                  perror("async_read");
+                              }
+                          });
 }
 
 void sessionToNP::do_read()
