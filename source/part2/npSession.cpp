@@ -71,19 +71,18 @@ void sessionToNP::do_read()
                                         // cout << Receive << endl;
                                         // cout<<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"<<endl;
                                         // cout << returnBody << endl;
-                                        // boost::asio::async_write(*currentSocket, boost::asio::buffer(returnBody, returnBody.size()),
-                                        //                          [this, self](boost::system::error_code ec, std::size_t /*length*/)
-                                        //                          {
-                                        //                              if (!ec)
-                                        //                              {
-                                        //                                 cout<<"async_write finished"<<endl;
-                                        //                              }
-                                        //                              else
-                                        //                              {
-                                        //                                  perror("async_write");
-                                        //                              }
-                                        //                          });
-                                        currentSocket->send(boost::asio::buffer(returnBody, returnBody.size()));
+                                        boost::asio::async_write(*currentSocket, boost::asio::buffer(returnBody, returnBody.size()),
+                                                                 [this, self](boost::system::error_code ec, std::size_t /*length*/)
+                                                                 {
+                                                                     if (!ec)
+                                                                     {
+                                                                        // cout<<"async_write finished"<<endl;
+                                                                     }
+                                                                     else
+                                                                     {
+                                                                         perror("async_write");
+                                                                     }
+                                                                 });
                                         Receive = "";
                                         do_write();
                                     }
