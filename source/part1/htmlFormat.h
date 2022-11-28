@@ -36,6 +36,9 @@ class sessionToNP
             filename = "./test_case/"+shells[id].file;
             inputFile.open(filename,ios::in);
         }
+        ~sessionToNP(){
+          cerr<<"shell "<<id<<" is closing session"<<endl;
+        }
 
         void start(){
             do_read();
@@ -111,6 +114,9 @@ class serverToNP{
                 resolve.async_resolve(query,
                     boost::bind(&serverToNP::connection, this,i,boost::asio::placeholders::error,boost::asio::placeholders::iterator ));
             }
+        }
+        ~serverToNP(){
+          cerr<<"server To NP is close"<<endl;
         }
         void connection(const int i,const boost::system::error_code& err,const tcp::resolver::iterator it){
             if (!err)

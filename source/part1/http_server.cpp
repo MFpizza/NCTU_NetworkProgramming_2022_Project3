@@ -4,7 +4,9 @@
 #include <utility>
 #include <sstream>
 #include <string.h>
+#include <sys/wait.h>
 #include <boost/asio.hpp>
+#include <boost/bind/bind.hpp>
 
 using boost::asio::ip::tcp;
 using boost::asio::io_service;
@@ -85,11 +87,7 @@ private:
             // cout<<"QS: "<<QUERY_STRING<<endl;
             // cout<<"TU: "<<target_uri<<endl;
     
-            io_context.notify_fork(io_service::fork_prepare);
-            if (fork() != 0) {
-							io_context.notify_fork(io_service::fork_parent);
-							socket_.close();
-						} else {
+            
               setenv("REQUEST_METHOD", REQUEST_METHOD, 1);
               setenv("REQUEST_URI", REQUEST_URI, 1);
               setenv("QUERY_STRING", QUERY_STRING, 1);
@@ -108,8 +106,8 @@ private:
               if (execlp(target_uri.c_str(), target_uri.c_str(), NULL) < 0) {
                 // std::cout << "Content-type:text/html\r\n\r\n<h1>FAIL</h1>";
                 // cout<<"fuck out"<<endl;
-                cout<<"finished\n";
-              }
+                cerr<<"finished\n";
+              
             }
             do_read();
           }
@@ -129,12 +127,34 @@ class server
 {
 public:
   server(boost::asio::io_context& io_context, short port)
-    : acceptor_(io_context, tcp::endpoint(tcp::v4(), port))
+    : acceptor_(io_context, tcp::endpoint(tcp::v4(), port)),
+      signal_(io_context, SIGCHLD)
   {
+    start_signal_wait();
     do_accept();
   }
 
 private:
+
+  void start_signal_wait()
+  {
+    signal_.async_wait(boost::bind(&server::handle_signal_wait, this));
+  }
+
+  void handle_signal_wait()
+  {
+    // Only the parent process should check for this signal. We can determine
+    // whether we are in the parent by checking if the acceptor is still open.
+    if (acceptor_.is_open())
+    {
+      // Reap completed child processes so that we don't end up with zombies.
+      int status = 0;
+      while (waitpid(-1, &status, WNOHANG) > 0) {}
+
+      start_signal_wait();
+    }
+  }
+
   void do_accept()
   {
     acceptor_.async_accept(
@@ -142,13 +162,30 @@ private:
         {
           if (!ec)
           {
-            std::make_shared<session>(std::move(socket))->start();
+            io_context.notify_fork(io_service::fork_prepare);
+
+            if (fork() == 0)
+            {
+                io_context.notify_fork(io_service::fork_child);
+                acceptor_.close();
+                signal_.cancel();
+                std::make_shared<session>(std::move(socket))->start(); 
+                cerr<<"session create finish"<<endl;    
+            }
+            else
+            {
+
+              io_context.notify_fork(io_service::fork_parent);
+
+              socket.close();
+              do_accept();
+            }
           }
 
-          do_accept();
         });
   }
 
+  boost::asio::signal_set signal_;
   tcp::acceptor acceptor_;
 };
 
