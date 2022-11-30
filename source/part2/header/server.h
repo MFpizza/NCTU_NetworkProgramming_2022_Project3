@@ -22,12 +22,12 @@ class server
 public:
   server(boost::asio::io_context &io_context, short port);
   ~server();
+  void stop();
 
 private:
   void do_accept();
   
   tcp::acceptor acceptor_;
 };
-extern server *s;
 
 #endif

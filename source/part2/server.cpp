@@ -16,15 +16,19 @@ server::~server(){
 
 void server::do_accept()
 {
-    // cout<<"ready to accept"<<endl;
+    cout<<"ready to accept"<<endl;
     acceptor_.async_accept(
         [this](boost::system::error_code ec, tcp::socket socket)
         {
             if (!ec)
             {
-                std::make_shared<session>(std::move(socket))->start();
+                 std::make_shared<session>(std::move(socket))->start();
             }
-            // cout<<"acceptor_"<<endl;
+            cout<<"acceptor_"<<endl;
             do_accept();
         });
+}
+
+void server::stop(){
+    acceptor_.close();
 }
