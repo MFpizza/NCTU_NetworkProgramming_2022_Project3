@@ -59,7 +59,7 @@ class sessionToNP
                     memset(data_,'\0',length);
                     size_t pos;
                     if((pos = Receive.find("% ")) != string::npos){
-                        output_shell(id,Receive);
+                        // output_shell(id,Receive);
                         Receive="";
                         do_write();
                     }

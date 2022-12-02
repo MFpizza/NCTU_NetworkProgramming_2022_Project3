@@ -64,28 +64,30 @@ void sessionToNP::do_read()
                                     }
                                     memset(data_, 0, max_length);
                                     size_t pos;
+                                    string returnBody = output_shell(id, Receive);
+                                    boost::asio::async_write(*currentSocket, boost::asio::buffer(returnBody, returnBody.size()),
+                                                             [this, self](boost::system::error_code ec, std::size_t /*length*/)
+                                                             {
+                                                                 if (!ec)
+                                                                 {
+                                                                     // cout<<"async_write finished"<<endl;
+                                                                 }
+                                                                 else
+                                                                 {
+                                                                     perror("async_write");
+                                                                 }
+                                                             });
                                     if ((pos = Receive.find("% ")) != string::npos)
                                     {
-                                        string returnBody = output_shell(id, Receive);
                                         // cout<<"--------------------------------"<<endl;
                                         // cout << Receive << endl;
                                         // cout<<"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"<<endl;
                                         // cout << returnBody << endl;
-                                        boost::asio::async_write(*currentSocket, boost::asio::buffer(returnBody, returnBody.size()),
-                                                                 [this, self](boost::system::error_code ec, std::size_t /*length*/)
-                                                                 {
-                                                                     if (!ec)
-                                                                     {
-                                                                        // cout<<"async_write finished"<<endl;
-                                                                     }
-                                                                     else
-                                                                     {
-                                                                         perror("async_write");
-                                                                     }
-                                                                 });
-                                        Receive = "";
+
                                         do_write();
                                     }
+                                    Receive = "";
+
                                     do_read();
                                 }
                                 else
