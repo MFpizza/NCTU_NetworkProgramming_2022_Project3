@@ -55,6 +55,7 @@ class sessionToNP
                     for(int i=0;i<length;i++){
                       Receive+= (data_[i]);
                     }
+                    output_shell(id,Receive);
                     memset(data_,'\0',length);
                     size_t pos;
                     if((pos = Receive.find("% ")) != string::npos){
@@ -62,6 +63,8 @@ class sessionToNP
                         Receive="";
                         do_write();
                     }
+                    else
+                      Receive="";
                     // cerr<<"shell "<<id<<" finish async_read_some"<<endl;
                     do_read();
                 }
